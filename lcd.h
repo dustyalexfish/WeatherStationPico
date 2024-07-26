@@ -71,11 +71,13 @@ void lcd_write_chars(char* chars, int length) {
 void lcd_clear_screen() {
     lcd_write_command_raw(blank);
     lcd_write_command_raw(0b00010000);
+    sleep_ms(10);
 }
 
 void lcd_home() {
     lcd_write_command_raw(blank);
     lcd_write_command_raw(0b00100000);
+    sleep_ms(10);
 }
 void shiftCursor(int numberOfTimes) {
     for(int i = 0; i < numberOfTimes; ++i) {
@@ -83,6 +85,7 @@ void shiftCursor(int numberOfTimes) {
         lcd_write_command_raw(0b01000000);
     }
 }
+
 
 void init_lcd() {
     
