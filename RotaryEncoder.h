@@ -46,3 +46,7 @@ int update_rotaryEncoder() {
 
     return ENCODER_NO_ACTIVITY;
 }
+
+bool getRotaryEncoderSWPushState() {
+    return gpio_get(ENCODER_SW);
+}
