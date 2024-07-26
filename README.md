@@ -11,7 +11,7 @@ Compile the project for the first time, without the code, and then add in all of
 
 # Required Parts
 
-A Computer to Program the RPI Pico     RPI PiHut ordering page (examples)
+A Computer to Program the RPI Pico 
 
 A 3D Printer (or an order from a 3D Printing company)
 
