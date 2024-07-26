@@ -12,8 +12,11 @@ Compile the project for the first time, without the code, and then add in all of
 # Required Parts
 
 A Computer to Program the RPI Pico     RPI PiHut ordering page (examples)
+
 A 3D Printer (or an order from a 3D Printing company)
+
 A roll of Filament (For your 3D printer)
+
 **1** Raspberry Pi Pico               https://thepihut.com/products/raspberry-pi-pico?variant=41925332566211
 
 **1** Half size Breadboard            https://thepihut.com/products/raspberry-pi-breadboard-half-size
