@@ -33,3 +33,5 @@ A roll of Filament (For your 3D printer)
 
 **~20** Male-to-Female Jumper Wires   https://thepihut.com/products/premium-female-male-extension-jumper-wires-20-x-12
 
+**~20** M2.5 Screws and Nuts          https://thepihut.com/products/adafruit-black-nylon-screw-and-stand-off-set-m2-5-thread
+
