@@ -15,10 +15,18 @@ A Computer to Program the RPI Pico     RPI PiHut ordering page (examples)
 A 3D Printer (or an order from a 3D Printing company)
 A roll of Filament (For your 3D printer)
 **1** Raspberry Pi Pico               https://thepihut.com/products/raspberry-pi-pico?variant=41925332566211
+
 **1** Half size Breadboard            https://thepihut.com/products/raspberry-pi-breadboard-half-size
+
 **1** DFRobot Weather Station         https://thepihut.com/products/weather-station-kit-with-anemometer-wind-vane-rain-bucket
+
 **1** Rotary Encoder                  (link needed)
+
 **1** I2C LCD 16x2                    https://thepihut.com/products/i2c-16x2-arduino-lcd-display-module
+
 **1** DS3231 RTC Module               https://tinyurl.com/ds3231-amazon
+
 **~20** Female-to-Female Jumper Wires https://thepihut.com/products/female-female-2-54-to-2-0mm-jumper-wires-x-40
+
 **~20** Male-to-Female Jumper Wires   https://thepihut.com/products/premium-female-male-extension-jumper-wires-20-x-12
+
