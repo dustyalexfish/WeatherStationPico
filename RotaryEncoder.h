@@ -24,6 +24,7 @@ void init_rotaryEncoder() {
     gpio_set_dir(ENCODER_SW,  GPIO_IN);
 
     gpio_pull_up(ENCODER_CLK);
+    gpio_pull_up(ENCODER_SW);
 
     lastState = gpio_get(ENCODER_CLK);
 
@@ -36,9 +37,9 @@ int update_rotaryEncoder() {
     if(currentState != lastState && currentState == false) {
         lastState = currentState;
         if(gpio_get(ENCODER_DT)) {
-            return ENCODER_CW;
-        } else {
             return ENCODER_CCW;
+        } else {
+            return ENCODER_CW;
         }
     }
 
@@ -48,5 +49,5 @@ int update_rotaryEncoder() {
 }
 
 bool getRotaryEncoderSWPushState() {
-    return gpio_get(ENCODER_SW);
+    return !gpio_get(ENCODER_SW);
 }
