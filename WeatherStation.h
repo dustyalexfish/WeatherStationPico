@@ -58,7 +58,7 @@ void recordDataOntoArray() {
     unsigned int rainfallOneDay = transCharToInt(buffer, 21, 23);
     unsigned int airPressure = transCharToInt(buffer, 28, 32);
 
-    if(airPressure < 400 || airPressure > 1500) {
+    if(airPressure < 4000 || airPressure > 15000) {
       airPressure = previousAirPressure;
     }
     previousAirPressure = airPressure;
