@@ -35,3 +35,7 @@ A roll of Filament (For your 3D printer)
 
 **~20** M2.5 Screws and Nuts          https://thepihut.com/products/adafruit-black-nylon-screw-and-stand-off-set-m2-5-thread
 
+A way to power the Raspberry Pi Pico (5V power required)
+
+
+
