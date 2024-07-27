@@ -332,23 +332,18 @@ void getFlashLogContents(int logPos) {
     if(readFlashLog(position+4096) == TEMP_CHAR) {
       position++;
       dataRecorded[3] = readFlashLog(position+4096);
-      printf("Temperature: %d\n", readFlashLog(position+4096));
     } else if(readFlashLog(position+4096) == HUMIDITY_CHAR) {
       position++;
       dataRecorded[10] = readFlashLog(position+4096);
-      printf("Humidity: %d\n", readFlashLog(position+4096));
     } else if(readFlashLog(position+4096) == WIND_DIR_CHAR) {
       position++;
       dataRecorded[0] = readFlashLog(position+4096);
-      printf("Wind Dir: %d\n", readFlashLog(position+4096));
     } else if(readFlashLog(position+4096) == WIND_SPEED_CHAR) {
       position++;
       dataRecorded[1] = readFlashLog(position+4096);
-      printf("Wind Speed: %d\n", readFlashLog(position+4096));
     } else if(readFlashLog(position+4096) == WIND_TOP_SPEED_CHAR) {
       position++;
       dataRecorded[2] = readFlashLog(position+4096);
-      printf("Wind Top Speed: %d\n", readFlashLog(position+4096));
     } else if(readFlashLog(position+4096) == RAINFALL_ONE_HOUR_CHAR) {
       position += 2;
       dataRecorded[4] = readFlashLog(position+4096-1);
