@@ -37,5 +37,30 @@ A roll of Filament (For your 3D printer)
 
 A way to power the Raspberry Pi Pico (5V power required)
 
+# 3D Printing
 
+In order to use this project, you will have to print the project box. The STL files and FreeCAD files are provided in the 3dmodels file for you to 3D print. I recommend printing out of ABS of PETG as PLA may warp in sunlight, unless you plan to keep the project box in the shade (which is possible, as the cables are quite long).
 
+# Wiring
+
+**LCD** Wire the LCD VCC-5V pin to your Raspberry Pi Pico 5V VBUS pin. Wire the GND pin to one of your Raspberry Pi Pico GND pins. Wire the SDA pin of your I2C lcd to GPIO6 on the Raspberry Pi Pico. Wire SCL on your LCD to GPIO7 on your Raspberry Pi Pico. 
+
+**Rotary Encoder** Wire the CLK pin of your Rotary Encoder to GPIO pin two. Wire the DT pin to GPIO3. Wire the SW pin to GPIO4. Attach the + to your VBUS pin and the GND pin to one of the Raspberry Pi Pico's Ground pins.
+
+**Weather Station** Wire the Weather Station Board TX pin to the Raspberry Pi Pico GPIO1. Wire the Weather Station Board RX pin to Raspberry Pi Pico GPIO0. Attach the 5V pin to VBUS, and the GND pin to one of the Raspberry Pi Pico's GND pins.
+
+**DS3231 Module** Wire the I2C SDA pn to GPIO6 and the SCL pin to GPIO7. Attach the + pin to 5V and the GND pin to one of the Raspberry Pi Pico GND pins.
+
+# Assembly
+
+Once you have 3D printed the top lid of the case, you can screw in the LCD display with M2.5 screws to fix it in place. You will have to superglue the Rotary Encoder in place to the model. 
+
+Wire all of the wires that exit the Weather Station board to exit through the holes in the top half of the project box. 
+
+Once you have done this, plug in the Raspberry Pi Pico in to your PC, and upload the UF2 file provided (builds/WeatherStation-1.1) to your Raspberry Pi Pico. Screw in the lid, and you are now recording your own weather!
+
+# Operation
+
+In order to erase all data stored on Flash, hold down the potentiometer until the text 'Erase' appears on the display. Leave it to erase, and then reapply power to the device. In order to view previous logs, hold the potentiometer until two dots appear on the screen, and then scroll through logs that are stored on the system using the rotary encoder. For debug, hold down the rotary encoder until about 6 dots appear, and let go. You must be using a serial monitor to access the contents via USB, like Minicom. The system will dump data in flash in blocks of 256 to serial to access.
+
+You now have a working Weather Station!
