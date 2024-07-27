@@ -187,7 +187,7 @@ void updateLCD(int pot_state) {
       displayTime = display_rainfall_hour();
       break;
     case 7:
-      displayTime = display_rainfall_hour();
+      displayTime = display_rainfall_day();
       break;
     default:
       displayTime = display_temp();
