@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "/path/to/pico-sdk") // Change this to your path to the Pico SDK
+set(PICO_SDK_PATH "/path/to/pico-sdk") # Change this to your path to the Pico SDK
 set(PICO_EXTRAS_PATH "/path/to/pico-extras") #Pico Extras is required for Deep Slee which I plan to add in the future
 
 set(PICO_BOARD pico CACHE STRING "Board type")
