@@ -138,7 +138,7 @@ int compressData() {
         index += 3;
     }
     unsigned short airPressure = getAirPressureFromCompression();
-    if((lastAirPressure != airPressure && airPressure < 400) || DISABLE_MEMORY_COMPRESSION) { // My Weather Station Module had problems with reporting the correct air pressure, so any low readings are discarded
+    if((lastAirPressure != airPressure && airPressure > 400 && airPressure < 1500) || DISABLE_MEMORY_COMPRESSION) { // My Weather Station Module had problems with reporting the correct air pressure, so any low readings are discarded
         lastAirPressure = airPressure;
         compressedData[index] = AIR_PRESSURE_CHAR;
         compressedData[index+1]  = (char) ((airPressure & 0b1111111100000000) >> 8);
