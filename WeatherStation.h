@@ -52,11 +52,16 @@ void blankArray() {
     dataRecorded[i] = (char)0;
   }
 }
+unsigned int previousAirPressure = 0;
 void recordDataOntoArray() {
     unsigned int rainfallOneHour = transCharToInt(buffer, 17, 19);
     unsigned int rainfallOneDay = transCharToInt(buffer, 21, 23);
     unsigned int airPressure = transCharToInt(buffer, 28, 32);
 
+    if(airPressure < 400 || airPressure > 1500) {
+      airPressure = previousAirPressure;
+    }
+    previousAirPressure = airPressure;
     //dataRecorded[0] = (char) ((rotation & 0b1111111100000000) >> 8);
     //dataRecorded[1] = (char) (rotation);
     dataRecorded[0]  = (char) (transCharToInt(buffer, 1, 3)/45);                               // Wind Direction
