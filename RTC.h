@@ -79,7 +79,7 @@ uint8_t getYear() {
     uint8_t rtc_year = i2c_getRTCdata(6);
     if(rtc_year = (uint8_t)255) {
     
-        printf("Invalid year reported");
+        //printf("Invalid year reported");
         return 24; // Year this code was written
     }
     uint8_t year =     (rtc_year & 0b00001111);
