@@ -216,9 +216,10 @@ void mainLoop() {
 
   lcd_backlight_on();
   lcd_clear_screen();
-
+  unsigned int record = 0;
   
   while(true) {
+      
       printf("-");
       char ch = uart_getc(UART_ID);
       if(ch == 'c') {
@@ -231,12 +232,13 @@ void mainLoop() {
 
       }
       if(takingData) { 
-
+        
         
         buffer[index] = ch;
         index++;
         //printf("Index++");
         if(index == 35) {
+          record++;
           wstime = getUnixTime();
           //lcd_clear_screen();
           //char timeChars[intLen(wstime)];
@@ -260,8 +262,11 @@ void mainLoop() {
           printWeatherInfo();
           wstime = 0;
           //printRTCData();
-          compressData();            
-          printRecordedData();
+          if(record % 60 == 0) {
+            printf("One minute: compressing data!");
+            compressData();            
+            printRecordedData();
+          }
         }
         if(sleep_counter > 30 && isBacklightOn()) {
           lcd_backlight_off();
