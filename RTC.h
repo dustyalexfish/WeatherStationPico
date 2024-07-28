@@ -88,22 +88,15 @@ uint8_t getYear() {
     return year+year_ten;
 }
 ulong getUnixTime() {
-    printf("GET SECS");
     long secs = getSeconds();
-    printf("GET MINS");
     long mins = getMinutes();
-    printf("GET HOURS");
     long hours = getHour();
-    printf("GET DAYS");
     long days = getDayOfMonth();
-    printf("GET MONTH");
     long month = getMonth();
-    printf("GET YEAR");
     long year = getYear()+2000;
     
     struct tm t;
     time_t t_of_day;
-    printf("Done GET");
     t.tm_year = year-1900;  // Year - 1900
     t.tm_mon = getMonth()-1;           // Month, where 0 = jan
     t.tm_mday = getDayOfMonth();          // Day of the month
