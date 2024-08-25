@@ -71,7 +71,6 @@ void recordDataOntoArray() {
     dataRecorded[4]  = (char) ((rainfallOneHour & 0b1111111100000000) >> 8);                 // Rain in One Hour
     dataRecorded[5]  = (char) (rainfallOneHour  & 0b0000000011111111);                       // Rain in One Hour
     dataRecorded[6]  = (char) ((rainfallOneDay & 0b1111111100000000) >> 8);                  // Rain in One Day
-    printf("rainfall1d: &d\n", rainfallOneDay);
     dataRecorded[7]  = (char) (rainfallOneDay  & 0b0000000011111111);                        // Rain in One Day
     dataRecorded[8]  = (char) ((airPressure & 0b1111111100000000) >> 8);                     // Air Pressure
     dataRecorded[9]  = (char) (airPressure  & 0b0000000011111111);                           // Air Pressure
