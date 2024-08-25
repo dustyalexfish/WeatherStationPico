@@ -63,9 +63,11 @@ bool hasFlashBeenErased(int offset) {
 void findPosInFlash() {
     posInFlash = 0;
     while(readFlashLog(posInFlash+4096) != (char)255) {
-        printf("Trying block %d\n", posInFlash/256);
         posInFlash += 256;
     }
+    printf("Position in flash = %d\n", posInFlash/256);
+    printf("Flash is %d%% full\n", (posInFlash/20000));
+    
 }
 void blank_recorder() {
     RAMposition = 0;
