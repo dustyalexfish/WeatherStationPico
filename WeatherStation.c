@@ -208,9 +208,10 @@ void mainLoop() {
   unsigned int record = 0;
   
   while(true) {
-      
+
       char ch = uart_getc(UART_ID);
       if(ch == 'c') {
+          gpio_set_dormant_irq_enabled(UART_RX_PIN, GPIO_IRQ_EDGE_FALL, false); // Disable dormant mode
           sleep_counter++;
           gpio_put(LED_PIN, 1);
           takingData = true;
@@ -244,6 +245,8 @@ void mainLoop() {
           if(record % 60 == 0) {
             compressData();       
           }
+
+          gpio_set_dormant_irq_enabled(UART_RX_PIN, GPIO_IRQ_EDGE_FALL, true); // Put the PICO into dormant mode 
         }
         if(sleep_counter > 30 && isBacklightOn()) {
           lcd_backlight_off();
@@ -434,8 +437,6 @@ int main() {
 
     init_rotaryEncoder();
     mainLoop();
-    
-    sleep_ms(1000);
     
 
 }
