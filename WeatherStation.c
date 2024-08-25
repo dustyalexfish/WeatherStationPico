@@ -50,17 +50,12 @@ int shortLen(short val) {
   return (int)((ceil(log10(val)))*sizeof(char));
 }
 bool display_temp() {
-  printf("TEMP HOME");
   lcd_home();
-  printf("TEMP LCD HOME");
   int temperature = (((int) getTemperatureFromCompression())-32)*5/9;
-  printf("GOT TEMP");
   char str[intLen(temperature)];
   sprintf(str, "%d", temperature);
-  printf("SPRINTF");
   lcd_write_chars("Temperature: ", 13);
   lcd_write_chars(str, intLen(temperature));
-  printf("FINISH");
   return true;
 }
 bool display_humid() {
@@ -156,8 +151,6 @@ int tick_counter = 0;
 int lastPotState = 0;
 
 void updateLCD(int pot_state) {
-  //uint32_t ints = save_and_disable_interrupts();
-  printf("UPDATE LCD");
   if(lastPotState != pot_state) {
     lastPotState = pot_state;
     lcd_clear_screen();
@@ -196,12 +189,8 @@ void updateLCD(int pot_state) {
   
   if(displayTime) {
     lcd_home();
-    //printf("time: %d", getTimeFromCompresion());
-    //printf("make time chars");
     char timeChars[intLen(wstime)];
-    //printf("shift cursor");
     shiftCursor(40);
-    //printf("sprintf time");
     sprintf(timeChars, "%d", wstime);
     lcd_write_chars("Time: ", 6);
     lcd_write_chars(timeChars, intLen(wstime));
@@ -220,12 +209,9 @@ void mainLoop() {
   
   while(true) {
       
-      printf("-");
       char ch = uart_getc(UART_ID);
       if(ch == 'c') {
           sleep_counter++;
-          //printf("Start");
-          printf("Number of logs %d:\n ", getNumberOfFlashLogs());
           gpio_put(LED_PIN, 1);
           takingData = true;
           index = 0;
@@ -236,15 +222,9 @@ void mainLoop() {
         
         buffer[index] = ch;
         index++;
-        //printf("Index++");
         if(index == 35) {
           record++;
           wstime = getUnixTime();
-          //lcd_clear_screen();
-          //char timeChars[intLen(wstime)];
-          //sprintf(timeChars, "%d", wstime);
-          //lcd_write_chars("Time: ", 6);
-          //lcd_write_chars(timeChars, intLen(wstime));
 
           updateLCD(pot_state);
           time_until_change -= 1;
@@ -259,13 +239,10 @@ void mainLoop() {
           takingData = false;
           
           recordDataOntoArray();
-          printWeatherInfo();
+          //printWeatherInfo();   Uncomment this if you want live weather info
           wstime = 0;
-          //printRTCData();
           if(record % 60 == 0) {
-            printf("One minute: compressing data!");
-            compressData();            
-            printRecordedData();
+            compressData();       
           }
         }
         if(sleep_counter > 30 && isBacklightOn()) {
@@ -370,8 +347,6 @@ void mainLoop() {
           lcd_write_chars(buf2, 16);
           printf("%s\n", buf);
           
-          printWeatherInfo();
-
           
           while(true) {
             
@@ -389,15 +364,10 @@ void mainLoop() {
             int update = update_rotaryEncoder();
             if(update == ENCODER_CW) {
               rotPosition++;
-              printf("CW");
-              
-              printf("%d\n", rotPosition);
               rotPosition = rotPosition % numberOfFlashLogs;
               break;
             }
             if(update == ENCODER_CCW) {
-              printf("CCW");
-              printf("%d\n", rotPosition);
               rotPosition--;
               if(rotPosition <= -1) {
                 rotPosition = numberOfFlashLogs-1;
@@ -430,7 +400,6 @@ int main() {
       sleep_ms(500);
       gpio_put(LED_PIN, 0);
       sleep_ms(500);
-      printf("1");
     }
     
     i2c_init(I2C_PORT, 50*1000);
@@ -468,15 +437,5 @@ int main() {
     
     sleep_ms(1000);
     
-    //while(true) {
-    //  printf("Core0 Loop");
-    //  gpio_put(LED_PIN, 1);
-    //  sleep_ms(500);
-    //  gpio_put(LED_PIN, 0);
-    //  sleep_ms(500);
-    //  sleep_counter++;
-
-    //  multicore_fifo_push_blocking((uint16_t)1);
-    //}
 
 }
