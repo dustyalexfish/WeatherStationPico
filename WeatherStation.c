@@ -40,6 +40,9 @@ int intLen(int val) {
   if(val <= 0) {
     return 1;
   }
+  if(val <= 10) {
+    return 1;
+  }
   return (int)((ceil(log10(val)))*sizeof(char));
 }
 
@@ -74,20 +77,8 @@ bool display_windSpeedAvg() {
   char str[intLen(avgSpeed)];
   sprintf(str, "%d", avgSpeed);
   lcd_write_chars("Avg Spd: ", 9);
-  lcd_write_chars(str, intLen(avgSpeed)*sizeof(char));
-  lcd_home();
-  shiftCursor(40);
-  lcd_write_chars(" (mph)", 6);
-  return false;
-  //lcd_home();
-  //int windSpeed = getAvgSpeedFromCompression();
-  //char str[(int)((ceil(log10(windSpeed)))*sizeof(char))];
-  //sprintf(str, "%d", windSpeed);
-  //lcd_write_chars("Wind Speed: ", 12);
-  //lcd_write_chars(str, (int)((ceil(log10(windSpeed)))*sizeof(char)));
-  //lcd_home();
-  //shiftCursor(40);
-  //lcd_write_chars("          (mph)", 15);
+  lcd_write_chars(str, intLen(avgSpeed));
+  lcd_write_chars("mph", 3);
   return true;
 }
 bool display_windSpeedFastest() {
@@ -240,7 +231,7 @@ void mainLoop() {
           takingData = false;
           
           recordDataOntoArray();
-          //printWeatherInfo();   Uncomment this if you want live weather info
+          printWeatherInfo();
           wstime = 0;
           if(record % 60 == 0) {
             compressData();       
