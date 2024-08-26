@@ -207,7 +207,6 @@ void mainLoop() {
       if(ch == 'c') {
           gpio_set_dormant_irq_enabled(UART_RX_PIN, GPIO_IRQ_EDGE_FALL, false); // Disable dormant mode
           sleep_counter++;
-          gpio_put(LED_PIN, 1);
           takingData = true;
           index = 0;
 
@@ -230,7 +229,6 @@ void mainLoop() {
             time_until_change = 5;
           }
 
-          gpio_put(LED_PIN, 0);
           index = 0;
           takingData = false;
           
@@ -402,14 +400,6 @@ int main() {
 
     //multicore_fifo_clear_irq();
     stdio_init_all();
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-    for(int i = 0; i < 8; ++i) {
-      gpio_put(LED_PIN, 1);
-      sleep_ms(500);
-      gpio_put(LED_PIN, 0);
-      sleep_ms(500);
-    }
     
     i2c_init(I2C_PORT, 50*1000);
     uart_init(UART_ID, BAUD_RATE);
