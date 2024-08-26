@@ -23,6 +23,7 @@ const uint8_t blank     = 0b00000000;
 const uint8_t backlight = 0b00001000;
 const uint8_t RS_CHAR   = 0b00000001;
 bool lcdBacklight = true;
+bool screenOff = false;
 
 void lcd_backlight_on() {
     lcdBacklight = true;
@@ -37,6 +38,10 @@ bool isBacklightOn() {
 }
 void lcd_write_command_raw(uint8_t val) {
     uint32_t ints = save_and_disable_interrupts();
+    if(screenOff) {
+        restore_interrupts(ints);
+        return; // We dont need to send commands if the screen is off
+    }
     if(lcdBacklight) {
         uint8_t val_mod = val | 0b00000100 | backlight;
         uint8_t val_backlight = val | backlight;
@@ -73,7 +78,18 @@ void lcd_clear_screen() {
     lcd_write_command_raw(0b00010000);
     sleep_ms(10);
 }
-
+void lcd_turn_screen_on() {
+    screenOff = false;
+    lcd_write_command_raw(blank);
+    lcd_write_command_raw(0b11000000);
+    sleep_ms(10);
+}
+void lcd_turn_screen_off() {
+    lcd_write_command_raw(blank);
+    lcd_write_command_raw(0b10000000);
+    screenOff = true;
+    sleep_ms(10);
+}
 void lcd_home() {
     lcd_write_command_raw(blank);
     lcd_write_command_raw(0b00100000);
