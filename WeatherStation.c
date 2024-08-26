@@ -189,6 +189,9 @@ void updateLCD(int pot_state) {
   //restore_interrupts(ints);
 }
 
+const int TIME_TURN_OFF = 10; // Turn off at 8:00 PM
+const int TIME_TURN_ON = 7; // turn back on at 7:00 AM
+
 
 void mainLoop() {
   int index = 0;
@@ -209,6 +212,7 @@ void mainLoop() {
           index = 0;
 
       }
+    
       if(takingData) { 
         
         
@@ -241,17 +245,28 @@ void mainLoop() {
         }
         if(sleep_counter > 30 && isBacklightOn()) {
           lcd_backlight_off();
+          lcd_turn_screen_off();
+          sleep_ms(10);
         } else if (!isBacklightOn() && sleep_counter < 30) {
+          lcd_turn_screen_on();
           lcd_backlight_on();
+          sleep_ms(10);
         }
       }
 
       uint8_t potentiometerTime = 0;
       if(getRotaryEncoderSWPushState()) {
+        if(!isBacklightOn()) {
+          sleep_counter = 0;
+          while(getRotaryEncoderSWPushState()) {
+            tight_loop_contents();
+          }
+        }
         lcd_clear_screen();
         sleep_ms(500);
         lcd_home();
       }
+      printf("CYCLE");
       while(getRotaryEncoderSWPushState()) {
           potentiometerTime++;
           sleep_ms(1000);
