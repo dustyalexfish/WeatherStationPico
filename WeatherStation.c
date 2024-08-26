@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "pico/multicore.h"
+#include "hardware/rtc.h"
 #include "hardware/uart.h"
 #include "hardware/i2c.h"
 #include "hardware/irq.h"
@@ -192,6 +193,62 @@ void updateLCD(int pot_state) {
 const int TIME_TURN_OFF = 10; // Turn off at 8:00 PM
 const int TIME_TURN_ON = 7; // turn back on at 7:00 AM
 
+int scroll(int rotPos, int scrollBy, int numberOfFlashLogs)
+{
+  int rotPosition = rotPos;
+  while(getRotaryEncoderSWPushState()) {
+    tight_loop_contents();
+  }
+  while (!getRotaryEncoderSWPushState())
+  {
+    getFlashLogContents(rotPosition);
+    time_t rawtime = getTimeFromCompresion();
+    struct tm ts;
+    char buf[16];
+    char buf2[16];
+    for (int i = 0; i < 16; ++i)
+    {
+      buf[i] = ' ';
+      buf2[i] = ' ';
+    }
+    // Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
+    ts = *localtime(&rawtime);
+    strftime(buf, sizeof(buf), "%a %d/%m/%Y", &ts);
+    strftime(buf2, sizeof(buf2), "%H:%M:%S %Z", &ts);
+    lcd_clear_screen();
+    lcd_home();
+    lcd_write_chars(buf, 16);
+    shiftCursor(24);
+    lcd_write_chars(buf2, 16);
+    printf("%s\n", buf);
+
+    while (true)
+    {
+      int update = update_rotaryEncoder();
+      if (update == ENCODER_CW)
+      {
+        rotPosition += scrollBy;
+        rotPosition = rotPosition % numberOfFlashLogs;
+        break;
+      }
+      if (update == ENCODER_CCW)
+      {
+        rotPosition -= scrollBy;
+        if (rotPosition <= -1)
+        {
+          rotPosition = numberOfFlashLogs - 1;
+        }
+        rotPosition = rotPosition % numberOfFlashLogs;
+        break;
+      }
+      if (getRotaryEncoderSWPushState())
+      {
+        break;
+      }
+    }
+  }
+  return rotPosition;
+}
 
 void mainLoop() {
   int index = 0;
@@ -264,7 +321,6 @@ void mainLoop() {
         sleep_ms(500);
         lcd_home();
       }
-      printf("CYCLE");
       while(getRotaryEncoderSWPushState()) {
           potentiometerTime++;
           sleep_ms(1000);
@@ -307,81 +363,43 @@ void mainLoop() {
         lcd_home();
         lcd_write_chars("Dumping output", 14);
 
-        while(true) {
           lcd_home();
-          
-          for(int i = position; i < position+256; ++i) {
-            int flashLog = readFlashLog(i);
+          int pos = 0;
+          while(pos < posInFlash) {
+            int flashLog = readFlashLog(pos);
             if((flashLog>65 && flashLog < 90) || (flashLog > 97 && flashLog < 122)) {
-              printf("%c ", readFlashLog(i));
+              printf("%c ", flashLog);
             } else {
-              printf("%d ", readFlashLog(i));
+              printf("%d ", flashLog);
             }
-
-            if(i % 16 == 0) {
+            if(pos % 16 == 0) {
               printf("\n");
             }
+            pos += 1;
           }
           sleep_ms(500);
-          printf("Press to continue");
+          printf("Done\n");
           while(!getRotaryEncoderSWPushState()) {
             tight_loop_contents(); // NOP instruction
           }
-          position += 256;
-        }
       } else if (potentiometerTime > 1) {
         int numberOfFlashLogs = getNumberOfFlashLogs();
         int rotPosition = 0;
         bool exit = false;
         while(!exit) {
-          getFlashLogContents(rotPosition);
-          time_t rawtime = getTimeFromCompresion();
-          struct tm  ts;
-          char       buf[16];
-          char       buf2[16];
-          for(int i = 0; i < 16; ++i) {
-            buf[i] = ' ';
-            buf2[i] = ' ';
-          }
-          // Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
-          ts = *localtime(&rawtime);
-          strftime(buf, sizeof(buf), "%a %d/%m/%Y", &ts);
-          strftime(buf2, sizeof(buf2), "%H:%M:%S %Z", &ts);
-          lcd_clear_screen();
-          lcd_home();
-          lcd_write_chars(buf, 16);
-          shiftCursor(24);
-          lcd_write_chars(buf2, 16);
-          printf("%s\n", buf);
-          
-          
-          while(true) {
-            
-            if(getRotaryEncoderSWPushState()) {
-              lcd_clear_screen();
-              lcd_home();
-              updateLCD(pot_state);
-              while(getRotaryEncoderSWPushState()) {};
-              sleep_ms(100);
-              while(!getRotaryEncoderSWPushState()) {};
-              
-              exit = true;
-              break;
-            }
-            int update = update_rotaryEncoder();
-            if(update == ENCODER_CW) {
-              rotPosition++;
-              rotPosition = rotPosition % numberOfFlashLogs;
-              break;
-            }
-            if(update == ENCODER_CCW) {
-              rotPosition--;
-              if(rotPosition <= -1) {
-                rotPosition = numberOfFlashLogs-1;
-              }
-              rotPosition = rotPosition % numberOfFlashLogs;
-              break;
-            }
+          rotPosition = scroll(rotPosition, 43200, numberOfFlashLogs);
+          rotPosition = scroll(rotPosition, 1440, numberOfFlashLogs);
+          rotPosition = scroll(rotPosition, 60, numberOfFlashLogs);
+          rotPosition = scroll(rotPosition, 1, numberOfFlashLogs);
+          if(getRotaryEncoderSWPushState()) {
+            lcd_clear_screen();
+            lcd_home();
+            updateLCD(pot_state);
+            while(getRotaryEncoderSWPushState()) {};
+            sleep_ms(100);
+            while(!getRotaryEncoderSWPushState()) {};
+            exit = true;
+            break;
           }
         }
         
@@ -413,7 +431,6 @@ int main() {
     uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
     uart_set_fifo_enabled(UART_ID, true);
     init_lcd();
-    
     lcd_write_chars("!!!!", 4);
     recorder_init();
     findPosInFlash();
