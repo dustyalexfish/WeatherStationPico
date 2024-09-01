@@ -126,7 +126,7 @@ bool display_rainfall_hour() {
 }
 bool display_rainfall_day() {
   lcd_home();
-  int rainfall = getRainfallOneDayFromCompression();
+  int rainfall = getRainfallOneDayFromCompression()*25;
   char str[intLen(rainfall)];
   sprintf(str, "%d", rainfall);
   lcd_write_chars("24h Rain: ", 10);
@@ -275,6 +275,7 @@ void mainLoop() {
         buffer[index] = ch;
         index++;
         if(index == 35) {
+          
           record++;
           wstime = getUnixTime();
 
@@ -293,7 +294,7 @@ void mainLoop() {
           printWeatherInfo();
           wstime = 0;
           if(record % 60 == 0) {
-            compressData();       
+            compressData(record == 0);       
           }
 
           gpio_set_dormant_irq_enabled(UART_RX_PIN, GPIO_IRQ_EDGE_FALL, true); // Put the PICO into dormant mode 
