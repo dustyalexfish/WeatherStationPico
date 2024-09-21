@@ -34,6 +34,17 @@ uint8_t i2c_getRTCdata(uint8_t REGISTER) {
     i2c_read_blocking(I2C_PORT, RTC_ADDR, result, 1, false);
     return result[0];
 }
+void i2c_writeRTCdata(uint8_t REGISTER, uint8_t data) {
+    uint8_t reg_and_data[2];
+    reg_and_data[0] = REGISTER;
+    reg_and_data[1] = data;
+    
+    //uint32_t interrupt = save_and_disable_interrupts();
+    i2c_write_blocking(I2C_PORT, RTC_ADDR, reg_and_data, 2, false);
+    sleep_us(10);
+    
+}
+
 
 uint8_t getSeconds() {
     uint8_t rtc_seconds = i2c_getRTCdata(0);
