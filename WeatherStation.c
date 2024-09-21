@@ -32,7 +32,7 @@ int time_since_interrupt();
 const int ADDR = 0x27;
 
 
-const int NUMBER_POT_STATES = 8;
+const int NUMBER_POT_STATES = 9;
 
 static const char default_format[] = "%a %b %d %Y";
 
@@ -53,6 +53,16 @@ int shortLen(short val) {
   }
   return (int)((ceil(log10(val)))*sizeof(char));
 }
+bool display_flash_storage() {
+  lcd_home();
+  char str[intLen(posInFlash)];
+  sprintf(str, "%d", posInFlash);
+  lcd_write_chars("Flash: ", 7);
+  lcd_write_chars(str, intLen(posInFlash));
+  lcd_write_chars("%", 1);
+  return true;
+}
+
 bool display_temp() {
   lcd_home();
   int temperature = (((int) getTemperatureFromCompression())-32)*5/9;
@@ -60,6 +70,7 @@ bool display_temp() {
   sprintf(str, "%d", temperature);
   lcd_write_chars("Temperature: ", 13);
   lcd_write_chars(str, intLen(temperature));
+  lcd_write_char('C');
   return true;
 }
 bool display_humid() {
@@ -69,6 +80,7 @@ bool display_humid() {
   sprintf(str, "%d", humidity);
   lcd_write_chars("Humidity: ", 10);
   lcd_write_chars(str, intLen(humidity)*sizeof(char));
+  lcd_write_char('%');
   return true;
 }
 
@@ -91,7 +103,7 @@ bool display_windSpeedFastest() {
   lcd_home();
   shiftCursor(40);
   lcd_write_chars(str, intLen(windSpeed)*sizeof(char));
-  lcd_write_chars(" (mph)", 6);
+  lcd_write_chars("mph", 3);
   return false;
 }
 bool display_windRotation() {
@@ -153,25 +165,28 @@ void updateLCD(int pot_state) {
   bool displayTime = true;
   
   switch(pot_state) {
-    case 1:
-      displayTime = display_humid();
+    case 0:
+      displayTime = display_flash_storage();
       break;
     case 2:
-      displayTime = display_windSpeedAvg();
+      displayTime = display_humid();
       break;
     case 3:
-      displayTime = display_windSpeedFastest();
+      displayTime = display_windSpeedAvg();
       break;
     case 4:
-      displayTime = display_windRotation();
+      displayTime = display_windSpeedFastest();
       break;
     case 5:
-      displayTime = display_airPressure();
+      displayTime = display_windRotation();
       break;
     case 6:
-      displayTime = display_rainfall_hour();
+      displayTime = display_airPressure();
       break;
     case 7:
+      displayTime = display_rainfall_hour();
+      break;
+    case 8:
       displayTime = display_rainfall_day();
       break;
     default:
@@ -283,7 +298,7 @@ void mainLoop() {
           time_until_change -= 1;
           if(time_until_change == 0) {
             pot_state += 1;
-            pot_state = pot_state % 8;
+            pot_state = pot_state % NUMBER_POT_STATES;
             time_until_change = 5;
           }
 
