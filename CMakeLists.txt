@@ -40,7 +40,9 @@ pico_enable_stdio_usb(WeatherStationPico 1)
 
 # Add the standard library to the build
 target_link_libraries(WeatherStationPico
-        pico_stdlib)
+        pico_stdlib
+        hardware_sleep
+        hardware_rosc)
 
 # Add the standard include files to the build
 target_include_directories(WeatherStationPico PRIVATE
