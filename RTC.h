@@ -26,6 +26,10 @@ uint8_t lastDayOfMonth = 0;
 uint8_t lastMonth = 0;
 uint8_t lastYear = 24;
 
+uint8_t getRTCVal(uint8_t val) {
+    return ((val / 10) << 4) + ((val%10) & 0b00001111);
+
+}
 uint8_t i2c_getRTCdata(uint8_t REGISTER) {
     uint8_t result[1];
     //uint32_t interrupt = save_and_disable_interrupts();
@@ -44,7 +48,18 @@ void i2c_writeRTCdata(uint8_t REGISTER, uint8_t data) {
     sleep_us(10);
     
 }
-
+void setTime(int secs, int mins, int hours, int days, int month, int year) {
+    gpio_put(25, 1);
+    sleep_ms(100);
+    i2c_writeRTCdata(0, getRTCVal(secs));
+    i2c_writeRTCdata(1, getRTCVal(mins));
+    i2c_writeRTCdata(2, getRTCVal(hours));
+    i2c_writeRTCdata(4, getRTCVal(days));
+    i2c_writeRTCdata(5, getRTCVal(month));
+    i2c_writeRTCdata(6, getRTCVal(year));
+    sleep_ms(500);
+    gpio_put(25, 0);
+}
 
 uint8_t getSeconds() {
     uint8_t rtc_seconds = i2c_getRTCdata(0);
@@ -88,10 +103,9 @@ uint8_t getMonth() {
 }
 uint8_t getYear() {
     uint8_t rtc_year = i2c_getRTCdata(6);
-    if(rtc_year = (uint8_t)255) {
-    
-        //printf("Invalid year reported");
-        return 24; // Year this code was written
+    if(rtc_year == (uint8_t)255) {
+        gpio_put(25, 1);
+        return 24; // The year this code was written
     }
     uint8_t year =     (rtc_year & 0b00001111);
     uint8_t year_ten = ((rtc_year & 0b11110000) >> 4)*10;
