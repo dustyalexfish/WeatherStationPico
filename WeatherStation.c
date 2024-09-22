@@ -34,7 +34,7 @@
 
 
 #define ENABLE_DORMANT true // Turn this ON if you are battery or solar powering your WeatherStation. However, Dormant mode is untested and is part of Pico Extras, so is unstable.
-#define ENABLE_PROTOTYPE_LED false // The onboard LED draws around 2 mA, and this is off to save that power
+#define ENABLE_PROTOTYPE_LED true // The onboard LED draws around 2 mA, and this is off to save that power
 #define TURN_LCD_OFF_AFTER_TIME_EXPIRE false // I am not sure if turning this on reduces power, so it is by default off
 
 int timeUntilLcdOffStart = 0;
@@ -267,7 +267,6 @@ int scroll(int rotPos, int scrollBy, int numberOfFlashLogs)
     lcd_write_chars(buf, 16);
     shiftCursor(24);
     lcd_write_chars(buf2, 16);
-    printf("%s\n", buf);
 
     while (true)
     {
@@ -338,7 +337,6 @@ void mainLoop() {
           takingData = false;
           
           recordDataOntoArray();
-          printWeatherInfo();
           wstime = 0;
           if(record % 60 == 0) {
             compressData(record < 5); // This is to take a few recordings in order to set all values to 0 that should be 0       
@@ -475,6 +473,9 @@ void mainLoop() {
           sleep_goto_dormant_until_pin(SQW_PIN, true, true);
           sleep_goto_dormant_until_pin(SQW_PIN, true, false);
           sleep_goto_dormant_until_pin(SQW_PIN, true, true);
+          sleep_goto_dormant_until_pin(SQW_PIN, true, false);
+          
+          //sleep_goto_dormant_until_pin(SQW_PIN, true, true);
           //while(!awake) {}
           
           //Re-enable ring Oscillator control
