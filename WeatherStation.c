@@ -267,7 +267,6 @@ int scroll(int rotPos, int scrollBy, int numberOfFlashLogs)
     lcd_write_chars(buf, 16);
     shiftCursor(24);
     lcd_write_chars(buf2, 16);
-    printf("%s\n", buf);
 
     while (true)
     {
@@ -319,7 +318,6 @@ void mainLoop() {
     
       if(takingData) { 
         
-        printf("%c", ch);
         buffer[index] = ch;
         index++;
         if(index == 35) {
@@ -338,7 +336,6 @@ void mainLoop() {
           takingData = false;
           
           recordDataOntoArray();
-          printWeatherInfo();
           wstime = 0;
           if(record % 60 == 0) {
             compressData(record < 5); // This is to take a few recordings in order to set all values to 0 that should be 0       
@@ -382,10 +379,8 @@ void mainLoop() {
             lcd_write_chars("Erase", 5);
 
             lcd_backlight_on();
-            printf("Erase\n");
             sleep_ms(3000);
             for(int i = 0; i < PICO_FLASH_SIZE_BYTES-RESERVED; i += 4096) {
-              printf(".");
               
               lcd_home();
               shiftCursor(40);
@@ -400,7 +395,6 @@ void mainLoop() {
             lcd_clear_screen();
             lcd_home();
             lcd_write_chars("Please restart",14);
-            printf("\nDone! Please restart now");
             while(true) {
               tight_loop_contents();
             };
