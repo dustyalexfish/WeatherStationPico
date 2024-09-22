@@ -1,14 +1,19 @@
+#include "pico/sleep.h"
 #include <math.h>
 
-#include "pico/multicore.h"
 #include "hardware/rtc.h"
+#include "pico/multicore.h"
+
 #include "hardware/uart.h"
 #include "hardware/i2c.h"
 #include "hardware/irq.h"
 #include "Recorder.h"
 #include "lcd.h"
 #include "RotaryEncoder.h"
-
+#include "hardware/rtc.h"
+#include "hardware/clocks.h"
+#include "hardware/rosc.h"
+#include "hardware/structs/scb.h"
 
 #define LED_PIN 25
 #define UART_ID uart0
@@ -21,11 +26,18 @@
 #define UART_RX_PIN 1
 #define I2C_SDA 6
 #define I2C_SDL 7
+#define SQW_PIN 16
 #define I2C_PORT i2c1
+
 
 #define MENUS 9
 
-int sleep_counter = 0;
+
+#define ENABLE_DORMANT true // Turn this ON if you are battery or solar powering your WeatherStation. However, Dormant mode is untested and is part of Pico Extras, so is unstable.
+#define ENABLE_PROTOTYPE_LED false // The onboard LED draws around 2 mA, and this is off to save that power
+#define TURN_LCD_OFF_AFTER_TIME_EXPIRE false // I am not sure if turning this on reduces power, so it is by default off
+
+int timeUntilLcdOffStart = 0;
 
 int time_since_interrupt();
 
@@ -33,6 +45,10 @@ const int ADDR = 0x27;
 
 
 const int NUMBER_POT_STATES = 9;
+
+volatile uint scb_orig;
+volatile uint clock0_orig;
+volatile uint clock1_orig;
 
 static const char default_format[] = "%a %b %d %Y";
 
@@ -154,6 +170,22 @@ int pot_state = 0;
 int tick_counter = 0;
 int lastPotState = 0;
 
+void initPins() {
+    stdio_uart_init();
+    //stdio_usb_init();
+
+    i2c_init(I2C_PORT, 50*1000);
+    uart_init(UART_ID, BAUD_RATE);
+
+    
+    // LED
+
+    uart_set_hw_flow(UART_ID, false, false);
+    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
+    uart_set_fifo_enabled(UART_ID, false);
+    
+}
+
 void updateLCD(int pot_state) {
   if(lastPotState != pot_state) {
     lastPotState = pot_state;
@@ -272,13 +304,14 @@ void mainLoop() {
   lcd_backlight_on();
   lcd_clear_screen();
   unsigned int record = 0;
-  
+  bool hasResultBeenTaken = false;
+  timeUntilLcdOffStart = getUnixTime();
   while(true) {
-
+      
       char ch = uart_getc(UART_ID);
+      
       if(ch == 'c') {
-          gpio_set_dormant_irq_enabled(UART_RX_PIN, GPIO_IRQ_EDGE_FALL, false); // Disable dormant mode
-          sleep_counter++;
+
           takingData = true;
           index = 0;
 
@@ -286,14 +319,13 @@ void mainLoop() {
     
       if(takingData) { 
         
-        
+        printf("%c", ch);
         buffer[index] = ch;
         index++;
         if(index == 35) {
-          
+          hasResultBeenTaken = true;
           record++;
           wstime = getUnixTime();
-
           updateLCD(pot_state);
           time_until_change -= 1;
           if(time_until_change == 0) {
@@ -309,17 +341,19 @@ void mainLoop() {
           printWeatherInfo();
           wstime = 0;
           if(record % 60 == 0) {
-            compressData(record == 0);       
+            compressData(record < 5); // This is to take a few recordings in order to set all values to 0 that should be 0       
           }
-
-          gpio_set_dormant_irq_enabled(UART_RX_PIN, GPIO_IRQ_EDGE_FALL, true); // Put the PICO into dormant mode 
         }
-        if(sleep_counter > 30 && isBacklightOn()) {
+        if(getUnixTime()-timeUntilLcdOffStart > 30 && isBacklightOn()) {
           lcd_backlight_off();
+          #if TURN_LCD_OFF_AFTER_TIME_EXPIRE
           lcd_turn_screen_off();
+          #endif
           sleep_ms(10);
-        } else if (!isBacklightOn() && sleep_counter < 30) {
+        } else if (!isBacklightOn() && getUnixTime()-timeUntilLcdOffStart < 30) {
+          #if TURN_LCD_OFF_AFTER_TIME_EXPIRE
           lcd_turn_screen_on();
+          #endif
           lcd_backlight_on();
           sleep_ms(10);
         }
@@ -328,7 +362,7 @@ void mainLoop() {
       uint8_t potentiometerTime = 0;
       if(getRotaryEncoderSWPushState()) {
         if(!isBacklightOn()) {
-          sleep_counter = 0;
+          timeUntilLcdOffStart = getUnixTime();
           while(getRotaryEncoderSWPushState()) {
             tight_loop_contents();
           }
@@ -419,34 +453,83 @@ void mainLoop() {
           }
         }
         
-      } 
+      }
 
+      #if ENABLE_DORMANT
+      if(hasResultBeenTaken) {
+          hasResultBeenTaken = false;
+
+          #if ENABLE_PROTOTYPE_LED
+          gpio_put(LED_PIN, 1);
+          #endif
+
+          scb_orig = scb_hw->scr;
+	        clock0_orig = clocks_hw->sleep_en0;
+	        clock1_orig = clocks_hw->sleep_en1;
+          
+          sleep_run_from_xosc();
+
+          i2c_writeRTCdata(0xE, 0b00000001); // enable alarm
+          sleep_goto_dormant_until_pin(SQW_PIN, true, true);
+          sleep_goto_dormant_until_pin(SQW_PIN, true, false);
+          sleep_goto_dormant_until_pin(SQW_PIN, true, true);
+          sleep_goto_dormant_until_pin(SQW_PIN, true, false);
+          sleep_goto_dormant_until_pin(SQW_PIN, true, true);
+          //while(!awake) {}
+          
+          //Re-enable ring Oscillator control
+          rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_LSB);
+
+          i2c_writeRTCdata(0xE, 0b00000000); // disable alarm
+
+          //reset procs back to default
+          scb_hw->scr = scb_orig;
+          clocks_hw->sleep_en0 = clock0_orig;
+          clocks_hw->sleep_en1 = clock1_orig;
+          
+          //stdio_usb_init();
+          stdio_uart_init();
+
+          i2c_init(I2C_PORT, 50*1000);
+          uart_init(UART_ID, BAUD_RATE);
+
+          #if ENABLE_PROTOTYPE_LED
+          gpio_put(LED_PIN, 0);
+          #endif
+
+
+          
+      }
+      #endif
       
   }
 
 }
 
 int main() {
-
-  
-
-
-
-    //multicore_fifo_clear_irq();
-    stdio_init_all();
-    
-    i2c_init(I2C_PORT, 50*1000);
-    uart_init(UART_ID, BAUD_RATE);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    gpio_init(LED_PIN);
+    gpio_init(SQW_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+    gpio_set_dir(SQW_PIN, GPIO_IN);
+    
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
-    uart_set_hw_flow(UART_ID, false, false);
-    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
-    uart_set_fifo_enabled(UART_ID, true);
+    gpio_pull_up(SQW_PIN);
+
+    initPins();
     init_lcd();
+
+    // DS3231 SQW Alarm for Waiting
+    i2c_writeRTCdata(0x7, 0b10000000);
+    i2c_writeRTCdata(0x8, 0b10000000);
+    i2c_writeRTCdata(0x9, 0b10000000);
+    i2c_writeRTCdata(0xA, 0b10000000);
+    i2c_writeRTCdata(0xE, 0b00000001);
+
     lcd_write_chars("!!!!", 4);
     recorder_init();
     findPosInFlash();
@@ -462,7 +545,6 @@ int main() {
       lcd_clear_screen();
       lcd_home();
     }
-    gpio_put(LED_PIN, 1);
 
     init_rotaryEncoder();
     mainLoop();
