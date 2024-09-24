@@ -33,7 +33,7 @@
 
 #define ENABLE_DORMANT true                  // Turn this ON if you are battery or solar powering your WeatherStation. However, Dormant mode is untested and is part of Pico Extras, so is unstable.
 #define ENABLE_PROTOTYPE_LED false           // The onboard LED draws around 2 mA, and this is off to save that power
-#define TURN_LCD_OFF_AFTER_TIME_EXPIRE false // I am not sure if turning this on reduces power, so it is by default off
+#define TURN_LCD_OFF_AFTER_TIME_EXPIRE true // I am not sure if turning this on reduces power, so it is by default off
 
 int timeUntilLcdOffStart = 0;
 
@@ -573,9 +573,9 @@ void mainLoop()
     {
       hasResultBeenTaken = false;
 
-#if ENABLE_PROTOTYPE_LED
-      gpio_put(LED_PIN, 1);
-#endif
+      #if ENABLE_PROTOTYPE_LED
+        gpio_put(LED_PIN, 1);
+      #endif
 
       scb_orig = scb_hw->scr;
       clock0_orig = clocks_hw->sleep_en0;
@@ -612,9 +612,7 @@ void mainLoop()
       i2c_init(I2C_PORT, 50 * 1000);
       uart_init(UART_ID, BAUD_RATE);
 
-#if ENABLE_PROTOTYPE_LED
       gpio_put(LED_PIN, 0);
-#endif
     }
 #endif
   }
@@ -624,8 +622,8 @@ int main()
 {
   gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
   gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-  gpio_init(LED_PIN);
   gpio_init(SQW_PIN);
+  gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_set_dir(SQW_PIN, GPIO_IN);
 
@@ -637,6 +635,7 @@ int main()
 
   initPins();
   init_lcd();
+
 
   // DS3231 SQW Alarm for Waiting
   i2c_writeRTCdata(0x7, 0b10000000);
