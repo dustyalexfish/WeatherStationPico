@@ -355,9 +355,9 @@ void mainLoop()
 
         recordDataOntoArray();
         wstime = 0;
-        if (record % 60 == 0)
+        if (getUnixTime() - timeUntilLcdOffStart > 30) // Only record if off to prevent uneven records
         {
-          compressData(record < 5); // This is to take a few recordings in order to set all values to 0 that should be 0
+          compressData(record); // This is to take a few recordings in order to set all values to 0 that should be 0
         }
       }
       if (getUnixTime() - timeUntilLcdOffStart > 30 && isBacklightOn())
@@ -584,12 +584,14 @@ void mainLoop()
       sleep_run_from_xosc();
 
       i2c_writeRTCdata(0xE, 0b00000001); // enable alarm
-      sleep_goto_dormant_until_pin(SQW_PIN, true, true);
-      sleep_goto_dormant_until_pin(SQW_PIN, true, false);
-      sleep_goto_dormant_until_pin(SQW_PIN, true, true);
-      sleep_goto_dormant_until_pin(SQW_PIN, true, false);
-      sleep_goto_dormant_until_pin(SQW_PIN, true, true);
-      sleep_goto_dormant_until_pin(SQW_PIN, true, false);
+      for(int i = 0; i < 60; ++i) { // Sleep for 60 secs or until SW down
+        if(getRotaryEncoderSWPushState() || getUnixTime() - timeUntilLcdOffStart <= 30) {
+          break;
+        }
+        sleep_goto_dormant_until_pin(SQW_PIN, true, true);
+        sleep_goto_dormant_until_pin(SQW_PIN, true, false);
+      }
+
 
       // sleep_goto_dormant_until_pin(SQW_PIN, true, true);
       // while(!awake) {}
