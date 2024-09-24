@@ -154,7 +154,7 @@ bool display_airPressure()
 bool display_rainfall_hour()
 {
   lcd_home();
-  int rainfall = getRainfallOneHourFromCompression() * 25;
+  int rainfall = (getRainfallOneHourFromCompression() * 25)/100;
   char str[intLen(rainfall)];
   sprintf(str, "%d", rainfall);
   lcd_write_chars("1h Rain: ", 9);
@@ -165,7 +165,7 @@ bool display_rainfall_hour()
 bool display_rainfall_day()
 {
   lcd_home();
-  int rainfall = getRainfallOneDayFromCompression() * 25;
+  int rainfall = (getRainfallOneDayFromCompression() * 25)/100;
   char str[intLen(rainfall)];
   sprintf(str, "%d", rainfall);
   lcd_write_chars("24h Rain: ", 10);
