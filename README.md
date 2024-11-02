@@ -39,7 +39,7 @@ A way to power the Raspberry Pi Pico (5V power required). I am using a Solar Pan
 
 # 3D Printing
 
-In order to use this project, you will have to print the project box. The STL files and FreeCAD files are provided in the 3dmodels file for you to 3D print. I recommend printing out of ABS of PETG as PLA may warp in sunlight, unless you plan to keep the project box in the shade (which is possible, as the cables are quite long).
+In order to use this project, you will have to print the project box. The STL files and FreeCAD files are provided in the 3dmodels file for you to 3D print. I recommend printing out of ABS or PETG as PLA may warp in sunlight, unless you plan to keep the project box in the shade (which is possible, as the cables are quite long).
 
 # Wiring
 
