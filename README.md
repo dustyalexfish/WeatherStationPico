@@ -29,8 +29,7 @@ A roll of Filament (For your 3D printer)
 
 **1** DS3231 RTC Module               https://tinyurl.com/ds3231-amazon
 
-**~20** Female-to-Female Jumper Wires https://thepihut.com/products/female-female-2-54-to-2-0mm-jumper-wires-x-40
-
+**~20** Male-to-Male Jumper Wires     https://thepihut.com/products/premium-male-male-jumper-wires-20-x-6-150mm
 **~20** Male-to-Female Jumper Wires   https://thepihut.com/products/premium-female-male-extension-jumper-wires-20-x-12
 
 **~20** M2.5 Screws and Nuts          https://thepihut.com/products/adafruit-black-nylon-screw-and-stand-off-set-m2-5-thread
