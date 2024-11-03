@@ -555,7 +555,7 @@ void mainLoop()
         wstime = 0;
         if (getUnixTime() - timeUntilLcdOffStart > 30) // Only record if off to prevent uneven records
         {
-          compressData(true); // We dont compress at first to set values that are 0 to 0.
+          compressData(record < 10); // We dont compress at first to set values that are 0 to 0.
         }
 
       }
