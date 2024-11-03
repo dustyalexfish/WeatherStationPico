@@ -816,9 +816,8 @@ int main()
   i2c_writeRTCdata(0xA, 0b10000000);
   i2c_writeRTCdata(0xE, 0b00000001);
 
-  lcd_write_chars("!!!!", 4);
   recorder_init();
-  findPosInFlash();
+  init_rotaryEncoder();
   if (!isFormatted())
   {
     showSetupWizard();
@@ -835,6 +834,6 @@ int main()
     lcd_home();
   }
 
-  init_rotaryEncoder();
+  findPosInFlash();
   mainLoop();
 }
