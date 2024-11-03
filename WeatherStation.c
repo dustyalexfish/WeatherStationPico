@@ -37,6 +37,7 @@
 
 int timeUntilLcdOffStart = 0;
 
+const char* DIRECTIONS[8] = {"N ","NE", "E ", "SE", "S ", "SW", "W ", "NW"};
 int time_since_interrupt();
 
 const int ADDR = 0x27;
@@ -133,10 +134,9 @@ bool display_windRotation()
 {
   lcd_home();
   int windRotation = getRotationFromCompression();
-  char str[intLen(windRotation) * sizeof(char)];
-  sprintf(str, "%d", windRotation);
   lcd_write_chars("Wind Rot: ", 10);
-  lcd_write_chars(str, intLen(windRotation) * sizeof(char));
+  lcd_write_char(DIRECTIONS[windRotation][0]);
+  lcd_write_char(DIRECTIONS[windRotation][1]);
 
   return true;
 }
@@ -307,6 +307,204 @@ int scroll(int rotPos, int scrollBy, int numberOfFlashLogs)
   }
   return rotPosition;
 }
+int numberRange(int max,char* question, int len, int start) {
+  lcd_clear_screen();
+  lcd_home();
+  lcd_write_chars(question, len);
+
+  while (getRotaryEncoderSWPushState())
+  {
+    tight_loop_contents();
+  };
+  int num = start;
+
+  char str2[intLen(num)];
+  sprintf(str2, "%d", num);
+  shiftCursor(40-len);
+  lcd_write_chars(str2, intLen(num));
+  while(!getRotaryEncoderSWPushState()) {
+    int update = update_rotaryEncoder();
+
+    num = num % max;
+    if (update == ENCODER_CW) {
+      num++;
+    } else if (update == ENCODER_CCW) {
+      num--;
+    }
+    if(update != ENCODER_NO_ACTIVITY) {
+      char str[intLen(num)];
+      sprintf(str, "%d", num);
+      lcd_home();
+      shiftCursor(40);
+      lcd_write_chars(str, intLen(num));
+      lcd_write_chars("    ", 4); // Write a few spaces in order to not have a problem of 0 stuck on screen when going from 10 to 1
+    }
+  }
+  while(getRotaryEncoderSWPushState()) {
+    tight_loop_contents();
+  }
+  return num;
+}
+bool showLCDQuestion(char* question, int len) {
+
+  lcd_clear_screen();
+  lcd_home();
+  lcd_write_chars(question, len);
+
+  while (getRotaryEncoderSWPushState())
+  {
+    tight_loop_contents();
+  };
+  lcd_home();
+  shiftCursor(41);
+  lcd_write_chars("Y            N", 14);
+  lcd_home();
+  shiftCursor(53);
+  lcd_write_char('>');
+  bool answer = false;
+  while (!getRotaryEncoderSWPushState())
+  {
+    sleep_us(1000);
+    int update = update_rotaryEncoder();
+    if (update == ENCODER_CW || update == ENCODER_CCW)
+    {
+      if (answer)
+      {
+
+        lcd_home();
+        shiftCursor(53);
+        lcd_write_char('>');
+        answer = false;
+        lcd_home();
+        shiftCursor(40);
+        lcd_write_char(' ');
+      }
+      else
+      {
+        lcd_home();
+        shiftCursor(53);
+        lcd_write_char(' ');
+        answer = true;
+        lcd_home();
+        shiftCursor(40);
+        lcd_write_char('>');
+      }
+    }
+  }
+
+  while(getRotaryEncoderSWPushState()) {
+    tight_loop_contents();
+  }
+  return answer;
+}
+void showSetupWizard() {
+  lcd_clear_screen();
+  lcd_home();
+  char WeatherStationPico[14] = "WeatherStation";
+  for (int i = 0; i < 14; ++i)
+  {
+    lcd_write_char(WeatherStationPico[i]);
+    sleep_ms(250);
+  }
+  shiftCursor(26);
+  lcd_write_chars("V1.3.1dev", 9);
+
+  while (!getRotaryEncoderSWPushState())
+  {
+    tight_loop_contents();
+  };
+
+  if (showLCDQuestion("Set Dir Offset?", 15))
+  {
+    bool takingData = false;
+    int index = 0;
+
+    lcd_clear_screen();
+    lcd_write_chars("Correct Rotation", 16);
+    shiftCursor(40-16);
+    lcd_write_chars("Direction: ",11);
+    
+ 
+      
+    while(!getRotaryEncoderSWPushState()) {
+
+      char ch = uart_getc(UART_ID);
+
+      if (ch == 'c')
+      {
+
+        takingData = true;
+        index = 0;
+      }
+
+      if (takingData)
+      {
+
+        printf("%c", ch);
+        buffer[index] = ch;
+        index++;
+        if (index == 35)
+        {
+          recordDataOntoArray();
+          lcd_home();
+          shiftCursor(51);
+          lcd_write_char(getRotationFromCompression()+48);
+          index = 0;
+          takingData = false;
+        }
+      }
+    }
+    while(getRotaryEncoderSWPushState()) {
+      tight_loop_contents();
+    }
+    
+  }
+  if(showLCDQuestion("Reset Flash?",12)) {
+    if(showLCDQuestion("Are you sure?",13)) {
+      lcd_clear_screen();
+      lcd_home();
+      lcd_write_chars("Erase", 5);
+      printf("Erase\n");
+      sleep_ms(3000);
+      for (int i = 0; i < PICO_FLASH_SIZE_BYTES - RESERVED; i += 4096)
+      {
+        printf(".");
+
+        lcd_home();
+        shiftCursor(40);
+        char str[intLen(i / 4096)];
+        sprintf(str, "%d", i / 4096);
+        lcd_write_chars(str, intLen(i / 4096));
+        lcd_write_chars(" pages", 6);
+        uint32_t interrupts = save_and_disable_interrupts();
+        flash_range_erase(i + RESERVED, 4096);
+        restore_interrupts(interrupts);
+      }
+      lcd_clear_screen();
+      lcd_home();
+      lcd_write_chars("Please restart", 14);
+      printf("\nDone! Please restart now");
+      while (true)
+      {
+        tight_loop_contents();
+      };
+    }
+  }
+  if(showLCDQuestion("Set time?", 9)) 
+  {
+    int year = numberRange(100, "Year", 4, getYear());
+    int month = numberRange(12, "Month", 5, getMonth());
+    int day = numberRange(31, "Day of Month", 12, getDayOfMonth());
+    int hours = numberRange(24, "Hour (24)", 9, getHour());
+    int minute = numberRange(60, "Minute", 6, getMinutes());
+    int second = numberRange(60, "Second", 6, getSeconds());
+    setTime(second, minute, hours, day, month, year);
+  }
+  while(getRotaryEncoderSWPushState()) {
+    tight_loop_contents();
+  }
+  
+}
 
 void mainLoop()
 {
@@ -357,8 +555,9 @@ void mainLoop()
         wstime = 0;
         if (getUnixTime() - timeUntilLcdOffStart > 30) // Only record if off to prevent uneven records
         {
-          compressData(record); // This is to take a few recordings in order to set all values to 0 that should be 0
+          compressData(true); // We dont compress at first to set values that are 0 to 0.
         }
+
       }
       if (getUnixTime() - timeUntilLcdOffStart > 30 && isBacklightOn())
       {
@@ -399,37 +598,10 @@ void mainLoop()
       sleep_ms(1000);
 
       lcd_write_char('.');
-      if (potentiometerTime == 10)
+      if (potentiometerTime >= 7)
       {
-        lcd_clear_screen();
-        lcd_home();
-        lcd_write_chars("Erase", 5);
 
-        lcd_backlight_on();
-        printf("Erase\n");
-        sleep_ms(3000);
-        for (int i = 0; i < PICO_FLASH_SIZE_BYTES - RESERVED; i += 4096)
-        {
-          printf(".");
-
-          lcd_home();
-          shiftCursor(40);
-          char str[intLen(i / 4096)];
-          sprintf(str, "%d", i / 4096);
-          lcd_write_chars(str, intLen(i / 4096));
-          lcd_write_chars(" pages", 6);
-          uint32_t interrupts = save_and_disable_interrupts();
-          flash_range_erase(i + RESERVED, 4096);
-          restore_interrupts(interrupts);
-        }
-        lcd_clear_screen();
-        lcd_home();
-        lcd_write_chars("Please restart", 14);
-        printf("\nDone! Please restart now");
-        while (true)
-        {
-          tight_loop_contents();
-        };
+        showSetupWizard();
       }
     }
     if (potentiometerTime > 5)
@@ -649,6 +821,7 @@ int main()
   findPosInFlash();
   if (!isFormatted())
   {
+    showSetupWizard();
     lcd_clear_screen();
     lcd_home();
     lcd_write_chars("Erasing data", 12);
