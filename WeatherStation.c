@@ -50,7 +50,6 @@ volatile uint clock1_orig;
 
 static const char default_format[] = "%a %b %d %Y";
 
-int time_until_change = 5;
 int intLen(int val)
 {
   if (val <= 0)
@@ -516,11 +515,31 @@ void mainLoop()
   unsigned int record = 0;
   bool hasResultBeenTaken = false;
   timeUntilLcdOffStart = getUnixTime();
+  char ch;
   while (true)
   {
+    
+    
 
-    char ch = uart_getc(UART_ID);
-
+    while(!uart_is_readable(UART_ID)) {
+      int update = update_rotaryEncoder();
+      if (update == ENCODER_CW) {
+        
+        pot_state += 1;
+        pot_state = pot_state % NUMBER_POT_STATES;
+      } else if (update == ENCODER_CCW) {
+        if(pot_state == 0) {
+          pot_state = NUMBER_POT_STATES-1;
+        } else {
+          pot_state -= 1;
+        }
+        
+      }
+      if(update != ENCODER_NO_ACTIVITY) {
+        updateLCD(pot_state);
+      }
+    }
+    ch = uart_getc(UART_ID);
     if (ch == 'c')
     {
 
@@ -540,14 +559,6 @@ void mainLoop()
         record++;
         wstime = getUnixTime();
         updateLCD(pot_state);
-        time_until_change -= 1;
-        if (time_until_change == 0)
-        {
-          pot_state += 1;
-          pot_state = pot_state % NUMBER_POT_STATES;
-          time_until_change = 5;
-        }
-
         index = 0;
         takingData = false;
 
